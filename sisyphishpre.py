@@ -14,6 +14,7 @@ from pathlib import Path
 # USAGE: Modify the below comp_factor variable for your machine. comp_factor must be set as the linear translation of your rho axis for 360 degrees of theta rotation
 
 comp_factor = 46.7 #MODIFY
+radius = 125
 
 #make sure enough parameters are given 
 if len(sys.argv) < 2:
@@ -50,7 +51,7 @@ while i < (len(splitline) - 1):
 j = 1
 while j < (len(splitline) - 1): 
 	#print(j)
-	splitline[j][1] = (float(splitline[j][1]) * 125) + (float(splitline[j][0]) * (comp_factor / 360))
+	splitline[j][1] = (float(splitline[j][1]) * radius) + (float(splitline[j][0]) * (comp_factor / 360))
 	splitline[j][1] = round(splitline[j][1], 2)
 	j += 1
 
