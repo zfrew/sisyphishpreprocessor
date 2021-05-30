@@ -33,52 +33,25 @@ output_filename = Path(sys.argv[2])
 f = open(input_filename, "r") #open the file
 lines = [line.rstrip('\n') for line in f] #strip away newline characters
 
-#create new list called splitline that contains only coordinate pairs
-splitline = []
-for x in lines: 
-	if bool((re.search(r'#', x))) != True:
-		splitline.append(x.split())
-
-#convert the first thr values into degrees of rotation
-i = 1 
-while i < (len(splitline) - 1):
-	#print(i)
-	splitline[i][0] = float(splitline[i][0]) / math.pi * 180
-	splitline[i][0] = round(splitline[i][0], 2)
-	i += 1
-
-#convert the second thr values into linear steps
-j = 1
-while j < (len(splitline) - 1): 
-	#print(j)
-	splitline[j][1] = (float(splitline[j][1]) * radius) + (float(splitline[j][0]) * (comp_factor / 360))
-	splitline[j][1] = round(splitline[j][1], 2)
-	j += 1
-
-#concatenate X to the beginning of the first list subindex 
-k = 1
-while k < (len(splitline) - 1): 
-	splitline[k][0] = "X" + str(splitline[k][0])
-	k += 1
-
-#concatenate "Y" to the beginning of the second list subindex
-l = 1
-while l < (len(splitline) - 1): 
-	splitline[l][1] = "Y" + str(splitline[l][1])
-	l += 1
-
-#concatenate G01 to the beginning of each sublist
-m = 1 
-while m < (len(splitline) - 1): 
-	splitline[m] = "G01 " + str(splitline[m])
-	m += 1
-
-splitline.insert(0, "G28 X Y") #make sure your axis are homed
-
 #write to newfile
-f = open(output_filename, "w")
-for line in splitline: 
-	#this line removes extraneous characters. It's a bit gross but easier to understand than a regex
-	line = str(line).replace("[", "").replace("]", "").replace("'", "").replace(",", "")
-	f.write(str(line) + '\n')
+outfile = open(output_filename, "w")
+outfile.write("G28 X Y\n") #make sure your axis are homed
 
+for rawline in lines:
+	# Remove everything up to the first comment char
+	line = rawline.split("#")[0]
+	# Get any elements left.
+	elements = line.split()
+	if len(elements) != 2:
+		# wrong number of elements. Oops
+		print("Wrong number of elements on line '{}'".format(line))
+		continue
+	(theta, rho) = elements
+	
+	angle = float(theta) / math.pi * 180.0
+	linearSteps = float(rho) * radius) + angle * (comp_factor / 360)
+	
+	gcode_line = "G01 X{0.2f} Y{0.2f}\n".format(angle, linearSteps)
+	
+	#this line removes extraneous characters. It's a bit gross but easier to understand than a regex
+	outfile.write(gcode_line.replace("[", "").replace("]", "").replace("'", "").replace(",", ""))
